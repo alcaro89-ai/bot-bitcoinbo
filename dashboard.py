@@ -297,27 +297,27 @@ def automatic_rebuy_pro(price, cash, total, df):
         return
 
     # ===== COMPRA FIJA 100€ =====
-    amount = BASE_REBUY_AMOUNT  # siempre 100 €
-    if cash < amount:
-        return  # si tienes menos de 100 €, no compra
+amount = BASE_REBUY_AMOUNT  # siempre 100 €
+if cash < amount:
+    return  # si tienes menos de 100 €, no compra
 
-   if client is None:
+if client is None:
     st.error("Cliente de Binance no inicializado. No se puede ejecutar la recompra.")
-    return  # para salir de la función si no hay cliente
-else:
-    try:
-        # Ejecutar orden de compra por mercado
-        client.order_market_buy(symbol=SYMBOL, quoteOrderQty=amount)
+    return  # salir de la función si no hay cliente
 
-        # Actualizar estado de la sesión
-        now = datetime.now()
-        st.session_state.last_rebuy_time = now
-        st.session_state.dca_level += 1
-        st.session_state.events.append({
-            "Fecha": now,
-            "Evento": f"Recompra PRO DCA {st.session_state.dca_level}",
-            "Precio": price
-        })
+try:
+    # Ejecutar orden de compra por mercado
+    client.order_market_buy(symbol=SYMBOL, quoteOrderQty=amount)
+
+    # Actualizar estado de la sesión
+    now = datetime.now()
+    st.session_state.last_rebuy_time = now
+    st.session_state.dca_level += 1
+    st.session_state.events.append({
+        "Fecha": now,
+        "Evento": f"Recompra PRO DCA {st.session_state.dca_level}",
+        "Precio": price
+    })
 
         # Notificación por email
         send_email(
@@ -477,6 +477,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
