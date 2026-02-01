@@ -296,42 +296,79 @@ def automatic_rebuy_pro(price, cash, total, df):
     if st.session_state.dca_level >= MAX_DCA_LEVELS:
         return
 
- # ===== COMPRA FIJA 100€ =====
-amount = BASE_REBUY_AMOUNT  # siempre 100 €
-if cash < amount:
-    return  # si tienes menos de 100 €, no compra
+# ===== COMPRA FIJA 100€ – FUNCIÓN SEGURA =====
+def fixed_rebuy(price, cash):
+    """
+    Compra fija de 100€ si hay suficiente saldo y cliente conectado
+    """
+    amount = BASE_REBUY_AMOUNT  # siempre 100 €
 
-if client is None:
-    st.error("Cliente de Binance no inicializado. No se puede ejecutar la recompra.")
-    return  # salir de la función si no hay cliente
+    if cash < amount:
+        return  # salir si hay menos de 100 €
 
-try:
-    # Ejecutar orden de compra por mercado
-    client.order_market_buy(symbol=SYMBOL, quoteOrderQty=amount)
+    if client is None:
+        st.error("Cliente de Binance no inicializado. No se puede ejecutar la recompra.")
+        return  # salir si no hay cliente
 
-    # Actualizar estado de la sesión
-    now = datetime.now()
-    st.session_state.last_rebuy_time = now
-    st.session_state.dca_level += 1
-    st.session_state.events.append({
-        "Fecha": now,
-        "Evento": f"Recompra PRO DCA {st.session_state.dca_level}",
-        "Precio": price
-    })
+    try:
+        # Ejecutar orden de compra por mercado
+        client.order_market_buy(symbol=SYMBOL, quoteOrderQty=amount)
 
-    # Notificación por email
-    send_email(
-        "🤖 Recompra PRO",
-        f"Importe: {amount} €\nPrecio: {price}"
-    )
+        # Actualizar estado de la sesión
+        now = datetime.now()
+        st.session_state.last_rebuy_time = now
+        st.session_state.dca_level += 1
+        st.session_state.events.append({
+            "Fecha": now,
+            "Evento": f"Recompra PRO DCA {st.session_state.dca_level}",
+            "Precio": price
+        })
 
-    st.success(f"🤖 Recompra PRO ejecutada ({amount} €)")
+        # Notificación por email
+        send_email(
+            "🤖 Recompra PRO",
+            f"Importe: {amount} €\nPrecio: {price}"
+        )
 
-except BinanceAPIException as e:
-    st.error(f"Error en Binance API: {e}")
+        st.success(f"🤖 Recompra PRO ejecutada ({amount} €)")
 
-except Exception as e:
-    st.error(f"Error general al ejecutar recompra: {e}")
+    except BinanceAPIException as e:
+        st.error(f"Error en Binance API: {e}")
+
+    except Exception as e:
+        st.error(f"Error general al ejecutar recompra: {e}")
+
+
+# ===== RECOMPRA AUTOMÁTICA NIVEL DIOS =====
+def automatic_rebuy_pro(price, cash, total, df):
+    """
+    Recompra automática avanzada con DCA, ATR, RSI y control de tendencia
+    """
+    if kill_switch(total):
+        return  # detener si drawdown supera límite
+
+    now_ts = time.time()
+    cooldown = BASE_COOLDOWN
+    if now_ts - st.session_state.last_rebuy_time < cooldown:
+        return  # cooldown activo
+
+    df = add_atr(df)
+    atr_pct = df["ATR"].iloc[-1] / df["c"].iloc[-1]
+    if atr_pct > MAX_VOLATILITY:
+        return  # volatilidad muy alta
+
+    ind = indicators(df)
+    if not trend_ok(df):
+        return  # tendencia no favorable
+
+    if ind["RSI"] > adaptive_rsi_floor():
+        return  # RSI demasiado alto
+
+    if st.session_state.dca_level >= MAX_DCA_LEVELS:
+        return  # máximo DCA alcanzado
+
+    # ===== COMPRA FIJA 100€ =====
+    fixed_rebuy(price, cash)
 
 
 
@@ -477,6 +514,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
