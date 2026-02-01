@@ -1,5 +1,7 @@
 streamlit
 python-binance
 pandas
-requests
 streamlit-autorefresh
+plotly
+requests
+numpy
