@@ -1,7 +1,7 @@
 streamlit
-python-binance
+python-binance>=1.0.16
 pandas
-streamlit-autorefresh
-plotly
-requests
 numpy
+plotly
+streamlit-autorefresh
+requests
