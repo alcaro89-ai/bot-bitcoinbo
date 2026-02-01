@@ -296,7 +296,7 @@ def automatic_rebuy_pro(price, cash, total, df):
     if st.session_state.dca_level >= MAX_DCA_LEVELS:
         return
 
-    # ===== COMPRA FIJA 100€ =====
+ # ===== COMPRA FIJA 100€ =====
 amount = BASE_REBUY_AMOUNT  # siempre 100 €
 if cash < amount:
     return  # si tienes menos de 100 €, no compra
@@ -319,19 +319,19 @@ try:
         "Precio": price
     })
 
-        # Notificación por email
-        send_email(
-            "🤖 Recompra PRO",
-            f"Importe: {amount} €\nPrecio: {price}"
-        )
+    # Notificación por email
+    send_email(
+        "🤖 Recompra PRO",
+        f"Importe: {amount} €\nPrecio: {price}"
+    )
 
-        st.success(f"🤖 Recompra PRO ejecutada ({amount} €)")
+    st.success(f"🤖 Recompra PRO ejecutada ({amount} €)")
 
-    except BinanceAPIException as e:
-        st.error(f"Error en Binance API: {e}")
+except BinanceAPIException as e:
+    st.error(f"Error en Binance API: {e}")
 
-    except Exception as e:
-        st.error(f"Error ejecutando recompra: {e}")
+except Exception as e:
+    st.error(f"Error general al ejecutar recompra: {e}")
 
 
 
@@ -477,6 +477,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
