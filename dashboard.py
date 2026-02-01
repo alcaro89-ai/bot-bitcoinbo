@@ -122,10 +122,23 @@ except Exception as e:
 
 
 def get_klines():
-    kl = client.get_klines(symbol=SYMBOL, interval="1h", limit=200)
-    df = pd.DataFrame(kl, columns=["t","o","h","l","c","v","ct","q","n","tb","tq","i"])
-    df[["o","h","l","c"]] = df[["o","h","l","c"]].astype(float)
-    return df
+    if client is None:
+        st.error("❌ Binance no conectado. No se pueden obtener velas.")
+        return None
+
+    try:
+        kl = client.get_klines(symbol=SYMBOL, interval="1h", limit=200)
+        df = pd.DataFrame(
+            kl,
+            columns=["t","o","h","l","c","v","ct","q","n","tb","tq","i"]
+        )
+        df[["o","h","l","c"]] = df[["o","h","l","c"]].astype(float)
+        return df
+    except Exception as e:
+        st.error(f"Error obteniendo klines: {e}")
+        return None
+
+
 
 def indicators(df):
     df["EMA200"] = df["c"].ewm(span=200).mean()
@@ -514,6 +527,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
