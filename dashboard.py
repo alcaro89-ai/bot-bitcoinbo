@@ -119,9 +119,11 @@ def get_balances():
         st.error("Cliente de Binance no inicializado correctamente")
         return 0, 0, 0  # devuelve ceros si no hay conexión
 
-    try:
-        btc = float(client.get_asset_balance(asset="BTC")["free"])
-    except Exception as e:
+ try:
+    btc = float(client.get_asset_balance(asset="BTC")["free"])
+except Exception as e:
+    st.error(f"Error obteniendo balance de BTC: {e}")
+    btc = 0  # opcional: asignar un valor por defecto
        
 
 def get_klines():
@@ -477,6 +479,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
