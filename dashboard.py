@@ -102,16 +102,27 @@ if "last_rebuy_time" not in st.session_state:
 if "dca_level" not in st.session_state:
     st.session_state.dca_level = 0
 
-# ===== FUNCIONES =====
+# ===== FUNCIONES SEGURAS =====
 def get_price():
-    return float(client.get_avg_price(symbol=SYMBOL)["price"])
+    if client is None:
+        st.error("Cliente de Binance no inicializado correctamente")
+        return 0  # devuelve 0 si no hay conexión
+    try:
+        return float(client.get_avg_price(symbol=SYMBOL)["price"])
+    except Exception as e:
+        st.error(f"Error obteniendo precio de {SYMBOL}: {e}")
+        return 0
+
 
 def get_balances():
-    btc = float(client.get_asset_balance(asset="BTC")["free"])
-    quote = "EUR" if SYMBOL.endswith("EUR") else "USDC"
-    cash = float(client.get_asset_balance(asset=quote)["free"])
-    total = btc * get_price() + cash
-    return btc, cash, total
+    if client is None:
+        st.error("Cliente de Binance no inicializado correctamente")
+        return 0, 0, 0  # devuelve ceros si no hay conexión
+
+    try:
+        btc = float(client.get_asset_balance(asset="BTC")["free"])
+    except Exception as e:
+       
 
 def get_klines():
     kl = client.get_klines(symbol=SYMBOL, interval="1h", limit=200)
@@ -293,19 +304,36 @@ def automatic_rebuy_pro(price, cash, total, df):
     if cash < amount:
         return  # si tienes menos de 100 €, no compra
 
+    if client is None:
+    st.error("Cliente de Binance no inicializado. No se puede ejecutar la recompra.")
+else:
     try:
+        # Ejecutar orden de compra por mercado
         client.order_market_buy(symbol=SYMBOL, quoteOrderQty=amount)
+
+        # Actualizar estado de la sesión
+        now = datetime.now()
         st.session_state.last_rebuy_time = now
         st.session_state.dca_level += 1
         st.session_state.events.append({
-            "Fecha": datetime.now(),
+            "Fecha": now,
             "Evento": f"Recompra PRO DCA {st.session_state.dca_level}",
             "Precio": price
         })
-        send_email("🤖 Recompra PRO", f"Importe: {amount}€\nPrecio: {price}")
+
+        # Notificación por email
+        send_email(
+            "🤖 Recompra PRO",
+            f"Importe: {amount} €\nPrecio: {price}"
+        )
+
         st.success(f"🤖 Recompra PRO ejecutada ({amount} €)")
-    except Exception as e:
-        st.error(e)
+
+    except BinanceAPIException as e:
+        st.error(f"Error en Binance API: {e}")
+
+    except BinanceOrderException as e:
+        st.error(f"Error al
 
 # ===== MAIN LIMPIO – DASHBOARD SUPREMO =====
 price = get_price()
@@ -449,6 +477,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
