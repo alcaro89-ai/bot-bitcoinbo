@@ -41,12 +41,14 @@ KILL_SWITCH_DRAWDOWN = -0.12
 # =========================================
 
 # ===== BINANCE CLIENT =====
+
 client = Client(
     BINANCE_API_KEY,
     BINANCE_API_SECRET,
-    tld="com",
-    requests_params={"timeout": 20}
+    requests_params={"timeout": 20}  # o 30
 )
+
+print(client.ping())
 
 server_time = client.get_server_time()
 client.timestamp_offset = server_time["serverTime"] - int(time.time() * 1000)
@@ -431,3 +433,4 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
