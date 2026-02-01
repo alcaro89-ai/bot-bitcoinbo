@@ -46,61 +46,28 @@ try:
     client = Client(
         BINANCE_API_KEY,
         BINANCE_API_SECRET,
-        requests_params={"timeout": 30}  # Aumenta si la nube es lenta
+        requests_params={"timeout": 30}  # aumentar tiempo si la nube es lenta
     )
 
     # Hacer ping para verificar conexión
-    client.ping()
+    print("Ping Binance:", client.ping())
 
     # Obtener tiempo del servidor
     server_time = client.get_server_time()
     client.timestamp_offset = server_time["serverTime"] - int(time.time() * 1000)
-    st.success("Conexión Binance OK. Tiempo sincronizado.")
+    print("Conexión Binance OK. Tiempo sincronizado.")
 
 except BinanceAPIException as e:
-    st.error(f"Error de Binance API: {e}")
-    client = None
+    print("Error de Binance API:", e)
+    client = None  # opcional, así no se cae la app
+
 except BinanceRequestException as e:
-    st.error(f"Error de conexión a Binance: {e}")
+    print("Error de conexión a Binance:", e)
     client = None
+
 except Exception as e:
-    st.error(f"Error general de conexión: {e}")
+    print("Error general:", e)
     client = None
-
-# ===== FUNCIONES =====
-def get_price(symbol="BTCUSDT"):
-    """Devuelve el precio promedio de un símbolo. 0.0 si falla."""
-    if client is None:
-        st.warning("Binance Client no disponible. No se puede obtener precio.")
-        return 0.0
-    try:
-        avg_price = client.get_avg_price(symbol=symbol)
-        return float(avg_price["price"])
-    except Exception as e:
-        st.error(f"No se pudo obtener el precio: {e}")
-        return 0.0
-
-def check_levels(price):
-    """Devuelve soportes y resistencias básicos según precio."""
-    # Ajusta estos niveles según tu análisis
-    soportes = [70000, 80000, 85000]   # USDT
-    resistencias = [90000, 95000, 100000]  # USDT
-
-    soporte_actual = max([s for s in soportes if s <= price], default=soportes[0])
-    resistencia_actual = min([r for r in resistencias if r >= price], default=resistencias[-1])
-
-    return soporte_actual, resistencia_actual
-
-# ===== STREAMLIT APP =====
-st.title("💹 Bot Bitcoin Seguro")
-
-price = get_price()
-st.metric(label="Precio BTC/USDT", value=price)
-
-if price > 0:
-    soporte, resistencia = check_levels(price)
-    st.write(f"🔹 Soporte actual: {soporte} USDT")
-    st.write(f"🔹 Resistencia actual: {resistencia} USDT")
 
 # ===== EMAIL =====
 def send_email(subject, body):
@@ -482,6 +449,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
