@@ -41,16 +41,33 @@ KILL_SWITCH_DRAWDOWN = -0.12
 
 # =========================================
 
-# ===== BINANCE CLIENT =====
-client = Client(
-    BINANCE_API_KEY,
-    BINANCE_API_SECRET,
-    tld="com",
-    requests_params={"timeout": 20}
-)
+# ===== BINANCE CLIENT SEGURO =====
+try:
+    client = Client(
+        BINANCE_API_KEY,
+        BINANCE_API_SECRET,
+        requests_params={"timeout": 30}  # aumentar tiempo si la nube es lenta
+    )
 
-server_time = client.get_server_time()
-client.timestamp_offset = server_time["serverTime"] - int(time.time() * 1000)
+    # Hacer ping para verificar conexión
+    print("Ping Binance:", client.ping())
+
+    # Obtener tiempo del servidor
+    server_time = client.get_server_time()
+    client.timestamp_offset = server_time["serverTime"] - int(time.time() * 1000)
+    print("Conexión Binance OK. Tiempo sincronizado.")
+
+except BinanceAPIException as e:
+    print("Error de Binance API:", e)
+    client = None  # opcional, así no se cae la app
+
+except BinanceRequestException as e:
+    print("Error de conexión a Binance:", e)
+    client = None
+
+except Exception as e:
+    print("Error general:", e)
+    client = None
 
 # ===== EMAIL =====
 def send_email(subject, body):
@@ -432,6 +449,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
