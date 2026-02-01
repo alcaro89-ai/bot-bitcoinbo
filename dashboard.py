@@ -301,8 +301,9 @@ def automatic_rebuy_pro(price, cash, total, df):
     if cash < amount:
         return  # si tienes menos de 100 €, no compra
 
-    if client is None:
+   if client is None:
     st.error("Cliente de Binance no inicializado. No se puede ejecutar la recompra.")
+    return  # para salir de la función si no hay cliente
 else:
     try:
         # Ejecutar orden de compra por mercado
@@ -329,8 +330,10 @@ else:
     except BinanceAPIException as e:
         st.error(f"Error en Binance API: {e}")
 
-    except BinanceOrderException as e:
-        st.error(f"Error al
+    except Exception as e:
+        st.error(f"Error ejecutando recompra: {e}")
+
+
 
 # ===== MAIN LIMPIO – DASHBOARD SUPREMO =====
 price = get_price()
@@ -474,6 +477,7 @@ st.markdown(
     "💬 Contacto: [darkpulsex@protonmail.com](mailto:darkpulsex@protonmail.com)",
     unsafe_allow_html=True
 )
+
 
 
 
